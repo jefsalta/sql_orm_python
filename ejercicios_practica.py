@@ -76,14 +76,40 @@ def fill():
 
     # No olvidarse que antes de poder crear un estudiante debe haberse
     # primero creado el tutor.
+    Session = sessionmaker(bind=engine)
+    sesion = Session()
+    
+    tut= Tutor(name= 'JUAN')
+    tut1= Tutor(name= 'EDUARDO')
+    sesion.add(tut)
+    sesion.add(tut1)
+    sesion.commit()
+    
+    al1 = Estudiante(name="MARIA", age="7", grade="3", tutor=tut)
+    al2 = Estudiante(name="LUISA", age="6", grade="2", tutor=tut)
+    al3 = Estudiante(name="MARIO", age="10", grade="5", tutor=tut1)
+    al4 = Estudiante(name="JULIA", age="12", grade="6", tutor=tut)
+    al5 = Estudiante(name="RAMIRO", age="10", grade="5", tutor=tut1)
 
+    sesion.add(al1)
+    sesion.add(al2)
+    sesion.add(al3)
+    sesion.add(al4)
+    sesion.add(al5)
+    sesion.commit()
+    
 
 def fetch():
-    print('Comprovemos su contenido, ¿qué hay en la tabla?')
+    print('Comprobemos su contenido, ¿qué hay en la tabla?')
     # Crear una query para imprimir en pantalla
     # todos los objetos creaods de la tabla estudiante.
     # Imprimir en pantalla cada objeto que traiga la query
     # Realizar un bucle para imprimir de una fila a la vez
+    Session = sessionmaker(bind=engine)
+    sesion = Session()
+    query = sesion.query(Estudiante)
+    for estudiante in query:
+        print(estudiante)
 
 
 def search_by_tutor(tutor):
@@ -95,7 +121,12 @@ def search_by_tutor(tutor):
     # Para poder realizar esta query debe usar join, ya que
     # deberá crear la query para la tabla estudiante pero
     # buscar por la propiedad de tutor.name
+    Session = sessionmaker(bind=engine)
+    sesion = Session()
+    query = sesion.query(Estudiante).join(Estudiante.tutor).filter(Tutor.name == tutor)
 
+    for estudiante in query:
+        print(estudiante)
 
 def modify(id, name):
     print('Modificando la tabla')
@@ -109,7 +140,19 @@ def modify(id, name):
 
     # TIP: En clase se hizo lo mismo para las nacionalidades con
     # en la función update_persona_nationality
+    Session = sessionmaker(bind=engine)
+    sesion = Session()
+    
+    query = sesion.query(Tutor).filter(Tutor.name == name)
+    tutor = query.first()
+    query = sesion.query(Estudiante).filter(Estudiante.id == id)
+    estudiante = query.first()
+    
+    estudiante.tutor= tutor
 
+    sesion.add(estudiante)
+    sesion.commit()
+    
 
 def count_grade(grade):
     print('Estudiante por grado')
@@ -119,20 +162,27 @@ def count_grade(grade):
 
     # TIP: En clase se hizo lo mismo para las nacionalidades con
     # en la función count_persona
+    Session = sessionmaker(bind=engine)
+    sesion = Session()
+    
+    query = sesion.query(Estudiante).filter(Estudiante.grade == grade).count()
+    
+    print(query," alumnos cursan el ",grade," grado")
 
 
 if __name__ == '__main__':
     print("Bienvenidos a otra clase de Inove con Python")
     create_schema()   # create and reset database (DB)
-    # fill()
-    # fetch()
+    fill()
+    fetch()
 
-    tutor = 'nombre_tutor'
-    # search_by_tutor(tutor)
+    tutor = 'JUAN'
+    search_by_tutor(tutor)
 
-    nuevo_tutor = 'nombre_tutor'
+    nuevo_tutor = 'EDUARDO'
     id = 2
-    # modify(id, nuevo_tutor)
-
+    modify(id, nuevo_tutor)
+    fetch()
+    
     grade = 2
-    # count_grade(grade)
+    count_grade(grade)
